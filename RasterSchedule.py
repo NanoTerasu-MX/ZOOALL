@@ -56,9 +56,9 @@ class RasterSchedule:
         self.roi_index = 1
 
         # for PILATUS BL45XU
-        if self.beamline == "BL45XU":
+        if self.beamline == "BL26B2":
             self.img_suffix = "cbf"
-        if self.beamline == "BL41XU" or self.beamline == "BL32XU" or self.beamline == "BL44XU":
+        if self.beamline in ("BL41XU", "BL32XU", "BL44XU", "BL45XU"):
             self.img_suffix = "h5"
 
         self.isSSROX = False

@@ -127,7 +127,7 @@ class BSSconfig:
             tmp_dict={}
             for each_line in block:
                 # print("LINE %s" % each_line)
-                if each_line.startswith("#"):
+                if each_line.startswith("#") or each_line == "":
                     continue
                 cols = each_line.split(":")
                 if cols[1]=="\n":
@@ -422,7 +422,13 @@ class BSSconfig:
             self.mz = self.getValue("Cmount_Gonio_Z_Magnet")
         except:
             self.mz = self.getValue("Cmount_Gonio_Z")
-        self.my = self.getValue("Cmount_Gonio_Y_Magnet")
+        # Offset value is applied. 2024/10/19 Y. Yamada
+        try:
+            offset_y = self.getValue("Cmount_Gonio_Y_Offset")
+        except:
+            offset_y = 0
+
+        self.my = self.getValue("Cmount_Gonio_Y_Magnet") + offset_y
         return self.mx, self.my, self.mz
 
     def getCryo(self):

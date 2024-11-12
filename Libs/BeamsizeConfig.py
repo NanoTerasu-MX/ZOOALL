@@ -32,7 +32,7 @@ class BeamsizeConfig:
         # read from 'beamline.ini" section: files, option: beamsize_conf_file
         self.configfile = self.config.get("files", "beamsize_conf_file")
 
-        self.debug = True
+        self.debug = False
 
     def setConfigFile(self, configfile):
         self.configfile = configfile
@@ -74,7 +74,7 @@ class BeamsizeConfig:
         for each_beam_str in beam_params:
             object_param_list = []
             for defstr in each_beam_str:
-                if defstr.rfind("rectangle") != -1:
+                if defstr.rfind("rectangle") != -1 or defstr.rfind("circle") != -1:
                     cols = defstr.split()
                     h_beam = float(cols[2]) * 1000.0
                     v_beam = float(cols[3]) * 1000.0

@@ -34,11 +34,15 @@ class KUMA:
         en_dose_function = interpolate.interp1d(df['energy'], df['dose_mgy_per_photon'], kind='cubic')
         # dosePerPhoton
         dose_per_photon = en_dose_function(energy).flatten()[0]
+        # Added by Yamada 20240927
+        en_denlimit_function = interpolate.interp1d(df['energy'], df['density_limit'], kind='cubic')
+        density_limit = en_denlimit_function(energy).flatten()[0]
 
-        return dose_per_photon
+        return dose_per_photon, density_limit
 
     def getDose1sec(self, beam_h, beam_v, flux, energy):
         # density_limit は tableにある数値 → 10 MGy に到達するまでの photon density
+        print(self.getDoseLimitParams(energy=energy))
         dose_per_photon, density_limit = self.getDoseLimitParams(energy=energy)
         # このビームの flux density を計算する
         flux_density = flux / (beam_h * beam_v)
@@ -77,7 +81,7 @@ class KUMA:
         en = 12.3984 / wavelength
 
         # density limit for aimed dose
-        dose_per_photon = self.getDoseLimitParams(energy=en)
+        dose_per_photon, density_limit = self.getDoseLimitParams(energy=en)
         density_limit = dose / dose_per_photon
 
         # Actual photon flux density
@@ -89,7 +93,7 @@ class KUMA:
     def convDoseToDensityLimit(self, dose, wavelength):
         en = 12.3984 / wavelength
         # dose_per_photon, density_limit
-        dose_per_photon = self.getDoseLimitParams(energy=en)
+        dose_per_photon, density_limit = self.getDoseLimitParams(energy=en)
         density_limit = dose / dose_per_photon
         self.limit_dens = density_limit
         print("Limit density= %e [phs/um2]" % self.limit_dens)

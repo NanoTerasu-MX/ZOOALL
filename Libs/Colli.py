@@ -123,7 +123,7 @@ class Colli:
         return tmp
 
     def on(self):
-        if self.beamline == "BL41XU":
+        if self.beamline in ("BL41XU", "BL26B2") :
             self.websock.collimator("on")
         else:
             if self.isInit == False:
@@ -135,7 +135,7 @@ class Colli:
                 each_axis['axis'].move(on_pulse)
 
     def off(self):
-        if self.beamline == "BL41XU":
+        if self.beamline in ("BL41XU", "BL26B2"):
             self.websock.collimator("off")
         else:
             if self.isInit == False:

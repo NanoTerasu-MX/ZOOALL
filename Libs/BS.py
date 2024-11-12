@@ -63,7 +63,7 @@ class BS:
         # BL41XU -> Websocket
         self.isWwebsocket = False
         self.beamline = self.config.get("beamline", "beamline")
-        if self.beamline == "BL41XU":
+        if self.beamline in ("BL41XU", "BL26B2"):
             self.websock = WebSocketBSS.WebSocketBSS()
             self.isWwebsocket = True
 

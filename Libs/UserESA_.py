@@ -315,6 +315,6 @@ class UserESA():
 
 if __name__ == "__main__":
     root_dir = os.getcwd()
-    u2db = UserESA(sys.argv[1], root_dir, beamline="BL32XU")
+    u2db = UserESA(sys.argv[1], root_dir, beamline="BL26B2")
     u2db.makeCondList()
     u2db.makeCSV(u2db.csvout)

@@ -316,7 +316,7 @@ class CryImageProc():
         self.isContourFull = True
         # No contour was found
         if len(self.full_contour) == 0:
-            raise MyException("CIP.getCenterInfo could not find any contours.")
+            raise MyException.MyException("CIP.getCenterInfo could not find any contours.")
         # Loop top coordinate
         self.top_xy = self.find_top_x(self.full_contour)
         self.isTopXY = True

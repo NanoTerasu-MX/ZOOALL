@@ -79,14 +79,15 @@ class WebSocketBSS:
 
         response = requests.post(self.api_url, headers=self.headers, json=command)
         return response.json()
-
+    
 if __name__ == "__main__":
     ws = WebSocketBSS()
-    print(ws.beamstopper("on"))
+    # print(ws.beamstopper("on"))
     print(ws.collimator("on"))
-    print(ws.intensityMonitor("on"))
-    print(ws.light("on"))
-    print("######################")
-    print(ws.beamstopper("off"))
+    # print(ws.intensityMonitor("on"))
+    # print(ws.light("on"))
+    # print("######################")
+    # print(ws.light("off"))
+    # print(ws.beamstopper("off"))
     print(ws.collimator("off"))
-    print(ws.intensityMonitor("off"))
+    # print(ws.intensityMonitor("off"))

@@ -42,7 +42,7 @@ class Light:
 
         # Beamline name
         self.beamline = self.config.get("beamline", "beamline")
-        if self.beamline == "BL41XU":
+        if self.beamline in ("BL41XU", "BL26B2"):
             self.isWebsocket = True
             self.websock = WebSocketBSS.WebSocketBSS()
 

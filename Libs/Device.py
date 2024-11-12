@@ -107,8 +107,8 @@ class Device(Singleton.Singleton):
         self.mbs=MBS.MBS(self.s)
         self.dss=DSS.DSS(self.s)
         # BL32XU specific
-        # BL44XU specific
-        if self.beamline.lower() == "bl44xu":
+        # BL44XU and BL26B2 specific
+        if self.beamline.lower() in ("bl44xu", "bl26b2"):
             self.precolli = PreColli.PreColli(self.s)
         elif self.beamline.lower()=="bl32xu":
             self.slit1 = ExSlit1.ExSlit1(self.s)
@@ -177,7 +177,7 @@ class Device(Singleton.Singleton):
 
         # BL44XU PreColli off
         # PreColli: beam defining aperture related to 'beamsize.conf'
-        if self.beamline.lower() == "bl44xu":
+        if self.beamline.lower() in ("bl44xu", "bl26b2"):
             self.precolli.setEvacuate()
         self.light.on()
 
@@ -230,7 +230,7 @@ class Device(Singleton.Singleton):
         self.shutter.open()
 
         # intensity monitor on
-        if self.beamline=="BL41XU":
+        if self.beamline in ("BL41XU", "BL26B2"):
             self.websock.intensityMonitor("on")
 
         if self.beamline == "BL32XU":
@@ -254,7 +254,7 @@ class Device(Singleton.Singleton):
             self.covz.off()
 
         # intensity monitor off
-        if self.beamline == "BL41XU":
+        if self.beamline in ("BL41XU", "BL26B2"):
             self.websock.intensityMonitor("off")
 
     def closeAllShutter(self):

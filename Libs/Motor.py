@@ -101,6 +101,7 @@ class Motor(ScanAxis.ScanAxis):
     def getPosition(self):
         com = "get/" + self.motor + "/position"
         recbuf = self.communicate(com)
+        print(recbuf)
         tmpf = Received.Received(recbuf)
         position = tmpf.readQuery()
 
@@ -109,7 +110,7 @@ class Motor(ScanAxis.ScanAxis):
             value = float(position.replace("mm", ""))
             return (value, "mm")
         elif position.find("pulse") != -1:
-            value = int(position.replace("pulse", ""))
+            value = int(float(position.replace("pulse", "")))
             return (value, "pulse")
         elif position.find("deg") != -1:
             value = float(position.replace("deg", ""))

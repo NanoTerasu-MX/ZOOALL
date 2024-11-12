@@ -91,9 +91,9 @@ class ZooNavigator():
 
         # Goniometer positions 
         # The values will be updated by the current pin position
-        self.sx = -1.5089
-        self.sy = 0.5714
-        self.sz = -0.3183
+        self.sx = -0.130
+        self.sy = 5.000
+        self.sz = 0.600
 
         # Goniometer mount position( will be read from BSS configure file)
         self.mx = -1.5089
@@ -268,7 +268,7 @@ class ZooNavigator():
             timg = cv2.imread(self.backimg)
             mean_value = timg.mean()
             self.logger.debug("Checking the file size and background level.")
-            if self.beamline.upper() == "BL32XU" or self.beamline.upper()=="BL44XU" or self.beamline.upper()=="BL41XU":
+            if self.beamline.upper() == "BL32XU" or self.beamline.upper()=="BL44XU" or self.beamline.upper()=="BL41XU" or self.beamline.upper()=="BL26B2":
                 # mean_thresh = 230
                 mean_thresh = 240  # 2021/01/21 HM temporary setting
             elif self.beamline.upper() == "BL45XU":

@@ -37,9 +37,10 @@ class Zoo:
             return False
         else:
             self.bssr.sendall(sending_command)
-            recstr = self.bssr.recv(8000)
+            recstr = self.bssr.recv(8000).decode()
 
-            return repr(recstr)
+            return recstr
+            # return repr(recstr)
 
     def connect(self):
         self.bssr = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
