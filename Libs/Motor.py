@@ -265,7 +265,8 @@ class Motor(ScanAxis.ScanAxis):
 
     def getRamda(self):
         com = "get/" + self.motor + "/wavelength"
-        recbuf = self.communicate(self.qcommand)
+        #recbuf = self.communicate(self.qcommand)
+        recbuf = self.communicate(com)
         tmpf = Received.Received(recbuf)
         position = tmpf.readQuery()
 

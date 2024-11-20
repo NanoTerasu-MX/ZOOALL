@@ -1,0 +1,11 @@
+#!/bin/bash
+# BL26B2
+#source /opt/dials/dials-v3-9-2/dials_env.sh
+
+export PYTHONPATH="/staff/bl26b2/BLsoft/ZOOALL/:/staff/bl26b2/BLsoft/ZOOALL/Libs/"
+export ZOOCONFIGPATH="/staff/bl26b2/BLsoft/ZOOALL/Libs"
+
+args=("$*")
+echo $args
+
+python3 $args
