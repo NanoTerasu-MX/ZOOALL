@@ -140,7 +140,8 @@ class Device(Singleton.Singleton):
         # Measurement
         ipin,iic=self.countPin(pin_ch=self.pin_channel)
         print(ipin,iic)
-        pin_uA=ipin/100.0
+        # TO DO: Gain should be put in beamline.ini (Yamada) 
+        pin_uA=ipin/10000.0
         iic_nA=iic/100.0
         # Photon flux estimation
         ff=Flux.Flux(en)

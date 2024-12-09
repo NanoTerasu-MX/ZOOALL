@@ -117,7 +117,7 @@ class ZooNavigator():
         self.meas_flux_list = []
         self.meas_wavelength_list = []
 
-        self.needMeasureFlux = True  # test at 2019/06/18 at BL45XU
+        self.needMeasureFlux = False  # test at 2019/06/18 at BL45XU
 
         # If BSS can change beamsize via command
         self.doesBSSchangeBeamsize = True
@@ -481,7 +481,7 @@ class ZooNavigator():
             # Recording flux value to ZOODB
             self.esa.updateValueAt(o_index, "flux", self.phosec_meas)
         elif self.helical_debug == True:
-            self.phosec_meas = 1E13  # 2019/05/24 K.Hirata
+            self.phosec_meas = 1E12  # 2019/05/24 K.Hirata, 2024/11/21 Y.Yamada
 
         # 2019/04/21 Measuring flux should be skipped now
         # Beamsize should be changed via BSS

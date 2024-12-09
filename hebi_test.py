@@ -1,5 +1,5 @@
 import sys,math,numpy,os,socket
-sys.path.append("/isilon/BL32XU/BLsoft/PPPP/10.Zoo/Libs/")
+# sys.path.append("/isilon/BL32XU/BLsoft/PPPP/10.Zoo/Libs/")
 import datetime
 import LoopMeasurement
 import Zoo
@@ -17,14 +17,14 @@ if __name__ == "__main__":
     zoo=Zoo.Zoo()
     zoo.connect()
 
-    esa=ESA.ESA("zoo.db")
-    esa_csv="181127-hel.csv"
+    esa=ESA.ESA("/user/admin26b2/yamada/zoo_241121114108.db")
+    esa_csv="/user/admin26b2/yamada/ZOOPREP_241121_YAMADA_BL26B2.csv"
     is_renew_db=True
     esa.makeTable("zoo.db",esa_csv,force_to_make=is_renew_db)
     conds=esa.getDict()
     #return self.conds
 
-    root_dir="/isilon/users/target/target/Staff/kuntaro/181127-HEBITEST/"
+    root_dir="/user/admin26b2/yamada"
     prefix="TEST"
     lm=LoopMeasurement.LoopMeasurement(ms,root_dir,prefix)
     lm.prepDataCollection(5)
