@@ -21,5 +21,12 @@ if __name__=="__main__":
     dev.init()
     gonio = blf.getGoniometer()
     x,y,z = gonio.getXYZmm()
-    phi = gonio.getPhi()
-    print(("current_xyz=",x,y,z,phi))
+    print(("current_xyz=",x,y,z))
+
+    # move to Cmount position
+    # Cmount position
+    x,y,z=blf.bss_config.getCmount()
+    gonio.moveXYZmm(x,y,z)
+
+    x,y,z = gonio.getXYZmm()
+    print(("current_xyz=",x,y,z))

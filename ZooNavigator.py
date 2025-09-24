@@ -276,11 +276,13 @@ class ZooNavigator():
         while (True):
             try:
                 self.dev.prepCentering(zoom_out=True)
+                # Wait time for 5 secs
+                time.sleep(5.0)
                 self.logger.debug("Dummy capture for the first image")
-                self.dev.capture.capture(self.backimg)
+                self.dev.capture.capture(self.backimg, wait_time=1.0)
                 time.sleep(0.5)
                 self.logger.debug("The 2nd image..")
-                self.dev.capture.capture(self.backimg)
+                self.dev.capture.capture(self.backimg, wait_time=1.0)
             except MyException as tttt:
                 raise MyException("Capture background file failed")
                 sys.exit()
@@ -291,15 +293,11 @@ class ZooNavigator():
 
             if self.isDark == False and mean_value < self.back_mean_thresh:
                 self.logger.info("Mean value of the image is %5d" % mean_value)
-                self.logger.info("Background image seems to be bad with lower mean value than 100!")
+                self.logger.info(f"Background image seems to be bad with lower mean value than {self.back_mean_thresh} in Light!")
                 continue
             elif self.isDark == True and self.back_mean_thresh < 35:
                 self.logger.info("Dark experiments: mean value of the image is %5d" % mean_value)
                 self.logger.info("Background image seems to be bad with lower mean value than 50 in Dark!")
-                continue
-            elif mean_value > self.back_mean_thresh:
-                self.logger.info("Mean value of the image is %5d" % mean_value)
-                self.logger.info("Background image seems to be bad with higher mean value than 200!")
                 continue
             else:
                 self.logger.info("Background image seems to be good!")
@@ -612,6 +610,9 @@ class ZooNavigator():
                     self.logger.info("BOSS command : BLTune will be run.")
                     self.zoo.runScriptOnBSS("BLTune")
                     self.dev.zoom.zoomOut()
+                else:
+                    self.logger.info("X-ray energy was changed. Waiting for 15 mins")
+                    time.sleep(15 * 60)
             else:
                 self.logger.info("Wavelength is not changed in this condition. Tuning is not required")
 
@@ -715,10 +716,9 @@ class ZooNavigator():
                 # isDoneにエラーコードを持たせている→meas_record
                 error_code = ErrorCode.SPACE_ACCIDENT
                 # update
-                self.updateDBinfo(cond, "meas_record", error_code.to_db_value())
                 # isDoneもZOODB用に入れておくことに
                 self.updateDBinfo(cond, "isDone", error_code)
-                self.updateDBinfO(cond, "log_mount", log_message)
+                self.updateDBinfo(cond, "log_mount", log_message)
                 return
 
             if exception_message.rfind('-1005000004') != -1:
@@ -728,25 +728,22 @@ class ZooNavigator():
                 log_message = message
                 error_code = ErrorCode.SPACE_WARNING_LHEAD_PUSHED
                 # update
-                self.updateDBinfo(cond, "meas_record", error_code.to_db_value())
                 # isDoneもZOODB用に入れておくことに
                 self.updateDBinfo(cond, "isDone", error_code)
-                self.updateDBinfO(cond, "log_mount", log_message)
+                self.updateDBinfo(cond, "log_mount", log_message)
                 return
 
             elif exception_message.rfind('-1005100001') != -1:
                 message = "'SPACE_WARNING_existense_pin_%s_%s'" % (trayid, pinid)
                 self.logger.warning(message)
                 error_code = ErrorCode.SPACE_WARNING_SUSPECTED
-                self.updateDBinfo(cond, "meas_record", error_code.to_db_value())
                 # isDoneもZOODB用に入れておくことに
-                self.updateDBinfo(cond, "isDone", error_code)
-                self.updateDBinfo(cond, "log_mount", message)
+                self.updateDBinfo(cond, "isDone", error_code.to_db_value())
                 # Let BSS know about this should be skipped. (reset SPACE)
                 self.zoo.skipSample()
                 self.logger.info("SPACE output a warning message. Next sample")
                 self.updateTime(cond, "meas_end", comment="skipped with SPACE warning")
-                self.updateDBinfO(cond, "log_mount", message)
+                self.updateDBinfo(cond, "log_mount", message)
                 self.logger.info("Breaking the loop of %s-%02d" % (trayid, pinid))
                 return
             elif exception_message.rfind('-1005100002') != -1:
@@ -755,7 +752,6 @@ class ZooNavigator():
                 self.logger.warning(message)
                 self.zoo.skipSample()
                 error_code = ErrorCode.SPACE_WARNING_SUSPECTED
-                self.updateDBinfo(cond, "meas_record", error_code.to_db_value())
                 self.updateDBinfo(cond, "isDone", error_code.to_db_value())
                 self.updateDBinfo(cond, "log_mount", message)
                 self.updateTime(cond, "meas_end", comment="skipped with SPACE warning")
@@ -766,7 +762,6 @@ class ZooNavigator():
                 message = "'SPACE_WARNING_rotate_too_much_%s_%s'" % (trayid, pinid)
                 self.logger.warning(message)
                 error_code = ErrorCode.SPACE_WARNING_ROTATE_TOO_MUCH
-                self.updateDBinfo(cond, "meas_record", error_code.to_db_value())
                 self.updateDBinfo(cond, "isDone", error_code.to_db_value())
                 self.updateTime(cond, "meas_end", comment="skipped with SPACE warning")
                 self.updateDBinfo(cond, "log_mount", message)
@@ -781,7 +776,6 @@ class ZooNavigator():
                 self.logger.warning(message)
                 error_code = ErrorCode.SPACE_WARNING_SUSPECTED
                 self.zoo.skipSample()
-                self.updateDBinfo(cond, "meas_record", error_code.to_db_value())
                 self.updateDBinfo(cond, "isDone", error_code.to_db_value())
                 self.updateDBinfo(cond, "log_mount", message)
                 self.updateTime(cond, "meas_end", comment="skipped with SPACE warning")
@@ -792,7 +786,6 @@ class ZooNavigator():
                 message = "Unknown Exception: %s. Program terminates" % ttt
                 self.logger.error(message)
                 error_code = ErrorCode.SPACE_UNKNOWN_ACCIDENT
-                self.updateDBinfo(cond, "meas_record", error_code.to_db_value())
                 self.updateDBinfo(cond, "isDone", error_code.to_db_value())
                 self.updateDBinfo(cond, "log_mount", message)
                 self.updateTime(cond, "meas_end", comment="skipped with SPACE warning")
@@ -896,7 +889,7 @@ class ZooNavigator():
             # isLoopCenter = 9999
             self.updateDBinfo(cond, "isLoopCenter", 9999)
             self.updateTime(cond, "cent_end", comment="Centering failed")
-            error_code = ErrorCode.CENTERING_FAILED
+            error_code = ErrorCode.CENTERING_FAILURE
             self.updateDBinfo(cond, "isDone", error_code.to_db_value())
             self.updateDBinfo(cond, "meas_record", error_code.to_db_value())
             # Disconnecting capture in this loop's 'capture' instance
