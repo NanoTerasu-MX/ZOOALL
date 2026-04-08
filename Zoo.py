@@ -40,9 +40,10 @@ class Zoo:
             return False
         else:
             self.bssr.sendall(sending_command)
-            recstr = self.bssr.recv(8000)
+            recstr = self.bssr.recv(8000).decode()
 
-            return repr(recstr)
+            return recstr
+            # return repr(recstr)
 
     def connect(self):
         self.bssr = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -162,7 +163,7 @@ class Zoo:
             print("Entering waiting loop for SPACE...")
             self.waitSPACE()
         except MyException as ttt:
-            raise MyException("mountSample: failed. %s" % ttt.args[0])
+            raise MyException("dismountSample: failed. %s" % ttt.args[0])
 
     def getCurrentPin(self):
         com = "get/sample/on_gonio"
@@ -324,6 +325,8 @@ class Zoo:
                     message = "Failed in clearing the warning flag."
                 elif error_code == -1005100001:
                     message = "Warning!! Check existence of the designated pin. CODE:%s" % error_code
+                elif error_code == -1005100151:
+                    message = "Failed to dismount the designated pin. CODE:%s" % error_code
                 elif error_code == -1005000008:
                     message = "Failed in cleaning SPACE"
                 elif error_code == -1000000000:
@@ -406,7 +409,7 @@ class Zoo:
             self.logger.info("received log: %s" % recstr)
 
             cols = recstr.split('/')
-            print(cols)
+            # print(cols)
             if cols[3].isdigit() == True:
                 beamsize_index = int(cols[3])
                 return beamsize_index

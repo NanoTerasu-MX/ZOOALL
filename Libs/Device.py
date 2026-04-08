@@ -26,6 +26,7 @@ import CoaxPint
 import BeamsizeConfig
 import Flux
 import PreColli
+import TCSsimple
 from configparser import ConfigParser, ExtendedInterpolation
 import WebSocketBSS
 import MyException
@@ -78,7 +79,7 @@ class Device(Singleton.Singleton):
 
     def init(self):
         # settings
-        print("Initialization starts")
+        print("Device. Initialization starts")
         self.mono=Mono.Mono(self.s)
         self.f=File.File("./")
         self.capture=Capture.Capture()
@@ -93,11 +94,15 @@ class Device(Singleton.Singleton):
         #self.mbs=MBS.MBS(self.s)
         #self.dss=DSS.DSS(self.s)
         # BL32XU specific
-        # BL44XU specific
-        if self.beamline.lower() == "bl44xu":
+        # BL44XU and BL26B2 specific
+        if self.beamline.lower() in ("bl44xu", "bl09u"):
             self.precolli = PreColli.PreColli(self.s)
         elif self.beamline.lower()=="bl32xu":
             self.slit1 = ExSlit1.ExSlit1(self.s)
+
+        # TC slits
+        if "tc_slits" in map(lambda x:x[0], self.config.items("axes")):
+            self.tcs = TCSsimple.TCSsimple(self.s, self.config)
 
         print("Device. initialization finished")
         self.isInit=True
@@ -126,6 +131,7 @@ class Device(Singleton.Singleton):
         # Measurement
         ipin,iic=self.countPin(pin_ch=self.pin_channel)
         print(ipin,iic)
+        # TO DO: Gain should be put in beamline.ini (Yamada) 
         pin_uA=ipin/100.0
         iic_nA=iic/100.0
         # Photon flux estimation
@@ -163,9 +169,9 @@ class Device(Singleton.Singleton):
 
         # BL44XU PreColli off
         # PreColli: beam defining aperture related to 'beamsize.conf'
-        if self.beamline.lower() == "bl44xu":
+        if self.beamline.lower() in ("bl44xu", "bl09u"):
             self.precolli.setEvacuate()
-        
+        self.clen.evac()
         self.websock.light("on")
 
     def prepCenteringBackCamera(self,zoom_out=True):
@@ -211,11 +217,12 @@ class Device(Singleton.Singleton):
             self.covz.isCover()
             self.slit1.openV()
             self.websock.light("off")
-        elif self.beamline=="BL41XU" or self.beamline=="BL45XU":
-            # BL45XU & BL41XU Light and Intensity monitor are on the same axis
+        elif self.beamline in ("BL41XU", "BL45XU", "BL09U"):
+            # BL45XU & BL41XU & BL09U Light and Intensity monitor are on the same axis
             print(f"{self.beamline} Light and Intensity monitor are on the same axis")
             print(f"Intensity monitor is on")
             self.websock.intensityMonitor("on")
+            self.clen.evac()
         elif self.beamline=="BL44XU":
             print("What do we do?")
 
@@ -239,7 +246,7 @@ class Device(Singleton.Singleton):
             ## Cover off
             self.covz.off()
         # intensity monitor off
-        if self.beamline == "BL41XU" or self.beamline=="BL45XU":
+        if self.beamline in ("BL41XU", "BL45XU", "BL26B2"):
             self.websock.intensityMonitor("off")
 
     def closeAllShutter(self):
@@ -332,6 +339,15 @@ class Device(Singleton.Singleton):
             print("Ring current %5.1f"%ring_current)
             return False
 
+    def test(self):
+        self.websock.shutter("open")
+        time.sleep(2.0)
+        self.websock.shutter("close")
+        time.sleep(2.0)
+        self.websock.shutter("open")
+        time.sleep(2.0)
+        self.websock.shutter("close")
+
 if __name__=="__main__":
     from configparser import ConfigParser, ExtendedInterpolation
     # read IP address for BSS connection from beamline.config 
@@ -348,7 +364,8 @@ if __name__=="__main__":
     dev.init()
 
     import time
-    dev.prepCentering()
+    dev.test()
+    #dev.prepCentering()
     #dev.prepScan()
     #dev.gonio.rotatePhi(225.0)
     #dev.measureFlux()

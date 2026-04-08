@@ -324,6 +324,9 @@ class HEBI():
             rpos, lpos = crystal.getRoughEdges()
             self.logger.info("Right position 2D scan: %9.4f %9.4f %9.4f" % (rpos[0], rpos[1], rpos[2]))
             self.logger.info("Left  position 2D scan: %9.4f %9.4f %9.4f" % (lpos[0], lpos[1], lpos[2]))
+            with open(f"{scan_path_2dface}/hebi_crystal_%03d.xyz" % cry_index, "w") as f:
+                f.write("%9.4f %9.4f %9.4f\n" % (lpos[0], lpos[1], lpos[2]))
+                f.write("%9.4f %9.4f %9.4f\n" % (rpos[0], rpos[1], rpos[2]))
 
             # Precise face scan for tiny crystal
             if precise_face_scan == True:
@@ -365,8 +368,8 @@ class HEBI():
             # for large crystals
             else:
                 self.logger.info("HEBI.mainLoop: Precise scan is skipped.")
-                left_face_xyz = lpos
-                right_face_xyz = rpos
+                left_face_xyz = (lpos[0], lpos[1] - cond['raster_hbeam'] / 1000.0, lpos[2])
+                right_face_xyz = (rpos[0], rpos[1] + cond['raster_hbeam'] / 1000.0, rpos[2])
 
             # This is debug function for 'LR' vertical centering
             # Left and right rough position is shifted by 50 um
@@ -376,6 +379,10 @@ class HEBI():
                 new_ry = right_face_xyz[1] - 0.05
                 left_face_xyz = left_face_xyz[0], new_ly, left_face_xyz[2]
                 right_face_xyz = right_face_xyz[0], new_ry, right_face_xyz[2]
+
+            with open(f"{scan_path_2dface}/hebi_shiftin_%03d.xyz" % cry_index, "w") as f:
+                f.write("%9.4f %9.4f %9.4f\n" % (left_face_xyz[0], left_face_xyz[1], left_face_xyz[2]))
+                f.write("%9.4f %9.4f %9.4f\n" % (right_face_xyz[0], right_face_xyz[1], right_face_xyz[2]))
 
             # check crystal size along the rotation axis
             rough_crystal_um = numpy.fabs(left_face_xyz[1] - right_face_xyz[1]) * 1000.0
@@ -433,7 +440,7 @@ class HEBI():
 
 
 if __name__ == "__main__":
-    face_agnle = 60.0
+    face_agnle = 270.0
     # def __init__(self,zoo,loop_measurement,logfile):
 
     zoo = 1
@@ -444,7 +451,9 @@ if __name__ == "__main__":
     h2 = HEBI(zoo, lm, log, stopwatch)
     # def getSortedCryList(self,scan_path,scan_prefix,phi_center,isWeakScan=False):
     # sc= h2.getSortedCryList("/isilon/users/target/target/nagano/190121/Auto/1575-07/scan00/2d/","2d_",260.0,isWeakScan=False)
-    sc = h2.getSortedCryList("/isilon/users/target/target/AutoUsers/190122/Toma/PF0082-03/scan00/2d", "2d_", 260.0,
+    sc = h2.getSortedCryList("/data/mxstaff/AlignmentData/2025B/251108/zootest/CPS1209-06/scan02/2d/", 
+                             "2d_", 
+                             270.0,
                              isWeakScan=False)
 
     index = 0

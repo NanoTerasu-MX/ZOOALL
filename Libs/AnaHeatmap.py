@@ -180,7 +180,7 @@ class AnaHeatmap:
         # Preparation of self.heatmap
         if self.isPrep == False:
             self.prep(prefix)
-            self.logger.info("Heatmap shape=", self.heatmap.shape)
+            self.logger.info("Heatmap shape=%s", str(self.heatmap.shape))
 
         # A new map array is prepared here based on self.heatmap
         check_map_array = []

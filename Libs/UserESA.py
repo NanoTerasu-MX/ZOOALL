@@ -50,7 +50,7 @@ class UserESA():
         self.logger_fh.setLevel(logging.DEBUG)
         # create console handler with a higher log level
         self.logger_ch = logging.StreamHandler()
-        self.logger_ch.setLevel(logging.WARNING)
+        self.logger_ch.setLevel(logging.DEBUG)
         # create formatter and add it to the handlers
         self.logger_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         # set formatter to handlers
@@ -79,7 +79,7 @@ class UserESA():
         self.df["score_max"] = self.config.getfloat("experiment", "score_max")
         self.df["raster_dose"] = self.config.getfloat("experiment", "raster_dose")
         self.df["dose_ds"] = self.config.getfloat("experiment", "dose_ds")
-        self.df["raster_roi"] = self.config.getint("experiment", "raster_roi")
+        self.df["raster_roi"] = self.config.getfloat("experiment", "raster_roi")
         self.df["exp_ds"] = self.config.getfloat("experiment", "exp_ds")
         self.df["exp_raster"] = self.config.getfloat("experiment", "exp_raster")
         # att_raster の数値を取得して小数点以下第一位までに丸める
@@ -138,7 +138,7 @@ class UserESA():
         score_max   = self.config.getfloat("experiment", "score_max")
         raster_dose = self.config.getfloat("experiment", "raster_dose")
         dose_ds     = self.config.getfloat("experiment", "dose_ds")
-        raster_roi  = self.config.getint("experiment", "raster_roi")
+        raster_roi  = self.config.getfloat("experiment", "raster_roi")
         exp_raster = self.config.getfloat("experiment", "exp_raster")
         att_raster  = self.config.getfloat("experiment", "att_raster")
         hebi_att    = self.config.getfloat("experiment", "hebi_att")
@@ -196,9 +196,6 @@ class UserESA():
         self.df['ln2_flag'] = self.df['ln2_flag'].replace('Yes', 1)
         self.df['ln2_flag'] = self.df['ln2_flag'].replace('yes', 1)
         self.df['ln2_flag'] = self.df['ln2_flag'].replace('YES', 1)
-        self.df['ln2_flag'] = self.df['ln2_flag'].replace('No', 0)
-        self.df['ln2_flag'] = self.df['ln2_flag'].replace('no', 0)
-        self.df['ln2_flag'] = self.df['ln2_flag'].replace('NO', 0)
         self.df['ln2_flag'] = self.df['ln2_flag'].replace('Unavailable', 0)
         self.df['ln2_flag'] = self.df['ln2_flag'].replace('-', 0)
 
@@ -505,8 +502,7 @@ class UserESA():
             min_camera_dim = self.config.getfloat("detector", "min_camera_dim")
         else:
             self.logger.info(f"ROI is True")
-            # ROIがある場合なんだが、calcDistFromLength()は半径でなく直径を要求する -> min_camera_dim = 2 * min_camera_dim
-            min_camera_dim = self.config.getfloat("experiment", "raster_roi_edge_mm") * 2.0
+            min_camera_dim = self.config.getfloat("detector", "min_camera_dim_roi")
 
         camera_len = self.calcDistFromLength(wavelength, resolution_limit, min_camera_dim)
 
@@ -547,15 +543,26 @@ class UserESA():
         self.df['dist_ds'] = self.df.apply(lambda x: self.calcDist(x['wavelength'], x['resolution_limit']), axis=1)
         # resolution limit は beamline.iniから読み込む
         # self.config : section=experiment, option=resol_raster
-        roi_value = self.config.getint("experiment", "raster_roi", fallback=0)
-        # roi flag
-        # roi_value =1 -> roi_flag=True
-        # roi_value =0 -> roi_flag=False
-        if roi_value == 1:
-            #self.logger.info(f"BL32XU: EIGER X 9M ROI")
-            dist_raster = self.calcDist(self.df['wavelength'], self.config.getfloat("experiment", "resol_raster"), True)
+        roi_value = self.config.getint("experiment", "raster_roi")
+        if self.beamline.lower() == "bl32xu":
+            # roi flag
+            # roi_value =1 -> roi_flag=True
+            # roi_value =0 -> roi_flag=False
+            if roi_value == 1:
+                self.logger.info(f"BL32XU: EIGER X 9M ROI")
+                dist_raster = self.calcDist(roi_value, self.config.getfloat("experiment", "resol_raster"), True)
+            else:
+                dist_raster = self.calcDist(roi_value, self.config.getfloat("experiment", "resol_raster"), False)
         else:
-            dist_raster = self.calcDist(self.df['wavelength'], self.config.getfloat("experiment", "resol_raster"), False)
+            if roi_value == 1:
+                self.logger.info(f"ROI scan is selected")
+                self.df['dist_raster'] =self.df.apply(lambda x: self.calcDist(x['wavelength'], 
+                                                                              self.config.getfloat("experiment", "resol_raster"),
+                                                                              True), 
+                                                      axis=1)
+                return
+            else:
+                dist_raster = self.calcDist(roi_value, self.config.getfloat("experiment", "resol_raster"), False)
 
         self.logger.info(f"dist_raster: {dist_raster}")
         self.df['dist_raster'] = dist_raster
@@ -642,12 +649,14 @@ class UserESA():
         zoo_csv_name = f"{self.csv_prefix}.csv"
         self.df.to_csv(zoo_csv_name, columns=self.columns, index=False, float_format=float_format)
 
+        self.csvout = zoo_csv_name
+        self.makeCSV(True)
         # 全パラメータの型を出力
         self.logger.info(f"Data types of all parameters in the DataFrame: {self.df.dtypes}")
 
 if __name__ == "__main__":
     root_dir = os.getcwd()
-    u2db = UserESA(sys.argv[1], root_dir, beamline="BL32XU")
+    u2db = UserESA(sys.argv[1], root_dir, beamline="BL09U")
     u2db.makeCondList()
     #u2db.read_new()
     #newdf = u2db.expandCompressedPinInfo()

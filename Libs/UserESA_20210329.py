@@ -128,6 +128,7 @@ class UserESA:
         elif desired_exp_string == "high_dose_scan":
             dose_for_raster = 0.3 # MGy
             dose_per_exptime = e.getDose(beam_h, beam_v, flux, exp_raster, energy=energy)
+            print("dose_per_exptime=", dose_per_exptime, " MGy")
             trans = dose_for_raster / dose_per_exptime * 100.0
             print("Transmission = %10.5f" % trans)
 
@@ -255,6 +256,7 @@ class UserESA:
         theta = numpy.arcsin(wavelength / 2.0 / resolution_limit)
         bunbo = 2.0 * numpy.tan(2.0 * theta)
         camera_len = min_dim / bunbo
+        
         return camera_len
 
     def checkBeamsize(self, beamsize_char):
@@ -311,15 +313,17 @@ class UserESA:
             pin_flag            = cols[15]
             zoom_flag           = 0 if cols[16].lower().count("no") else 1
 
+            print("pin_flag=_%s_"% pin_flag.lower())
             if pin_flag.lower() == "spine":
                 wait_time = 10
-            elif pin_flag.lower() == "als + ssrl":
+            elif pin_flag.lower == "als + ssrl":
                 wait_time = 20
             elif pin_flag.lower() == "copper":
                 wait_time = 60
             elif pin_flag.lower() == "no-wait":
                 wait_time = 0
             else:
+                print("OTHER!")
                 wait_time = 30
 
             distance = math.floor(self.calcDist(wavelength, resolution_limit)/10)*10 # by N.Mizuno at 2020/02/06

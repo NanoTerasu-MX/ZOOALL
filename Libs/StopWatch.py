@@ -18,7 +18,7 @@ class StopWatch:
     def setTime(self,key):
         nowtime=datetime.datetime.now()
         self.sw_dict[key]=nowtime
-        print(self.sw_dict[key])
+        print(f"Time at {key} is set.{self.sw_dict[key]}")
 
     def getDsecBtw(self,begtime_tag,endtime_tag):
         begtime=self.sw_dict[begtime_tag]

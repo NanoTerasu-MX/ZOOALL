@@ -9,6 +9,7 @@ from pylab import *
 from Motor import *
 import BSSconfig
 from configparser import ConfigParser, ExtendedInterpolation
+import configparser
 
 class Gonio:
     def __init__(self,server):
@@ -31,7 +32,10 @@ class Gonio:
         # gonio z > section: axes, option: gonio_z_name
         self.z_name = self.config.get("axes", "gonio_z_name")
         # gonio zz > section: axes, option: gonio_zz_name
-        self.zz_name = self.config.get("axes", "gonio_zz_name")
+        try:
+            self.zz_name = self.config.get("axes", "gonio_zz_name")
+        except (configparser.NoOptionError, KeyError):
+            self.zz_name = ""
         # gonio rotation axis > section: axes, option: gonio_rot_name
         self.rot_name = self.config.get("axes", "gonio_rot_name")
 
@@ -39,15 +43,18 @@ class Gonio:
         self.goniox=Motor(self.s,"bl_%s_%s" % (self.bl_object, self.x_name),"pulse")
         self.gonioy=Motor(self.s,"bl_%s_%s" % (self.bl_object, self.y_name),"pulse")
         self.gonioz=Motor(self.s,"bl_%s_%s" % (self.bl_object, self.z_name),"pulse")
-        self.goniozz=Motor(self.s,"bl_%s_%s" % (self.bl_object, self.zz_name),"pulse")
+        if self.zz_name != "":
+            self.goniozz=Motor(self.s,"bl_%s_%s" % (self.bl_object, self.zz_name),"pulse")
         self.phi=Motor(self.s,"bl_%s_%s" % (self.bl_object, self.rot_name),"pulse")
         self.base = 0.0
 
         # initialization flag
         self.isPrep = False
 
+        print("Gonio. Initialization starts")
+
         # BL32XU specific sense parameter for a rotation axis: mysterious setting
-        if self.beamline == "BL32XU":
+        if self.beamline == "BL32XU" or self.beamline == "BL09U":
             self.sense_phi_special = -1.0
         elif self.beamline == "BL41XU":
             self.sense_phi_special = 1.0
@@ -61,9 +68,12 @@ class Gonio:
         print(self.v2p_x, self.sense_x, self.home_x)
         print(self.v2p_y, self.sense_y, self.home_y)    
         print(self.v2p_z, self.sense_z, self.home_z)
-        self.v2p_zz, self.sense_zz, self.home_zz = self.bssconf.getPulseInfo(self.zz_name)
+        if self.zz_name != "":
+            self.v2p_zz, self.sense_zz, self.home_zz = self.bssconf.getPulseInfo(self.zz_name)
         self.v2p_rot, self.sense_phi, self.home_phi = self.bssconf.getPulseInfo(self.rot_name)
         self.isPrep = True
+
+        print("Gonio. Initialization finished")
 
     def goMountPosition(self):
         bssconf=BSSconfig()

@@ -7,9 +7,9 @@ import wx.lib.mixins.listctrl as listmix
 import logging
 
 # Version 3.22 2019/10/25 : 
-beamline = "BL32XU"
+beamline = "BL09U"
 
-sys.path.append("/isilon/%s/BLsoft/PPPP/10.Zoo/Libs" % beamline.upper())
+sys.path.append("/system/BLSoft/ZOOALL/Libs")
 
 import ESA
 import DBinfo
@@ -55,7 +55,7 @@ for p in ppp:
            p['score_min'], p['score_max'], p['maxhits'], p['dist_ds'],
            p['cry_min_size_um'], p['cry_max_size_um'], p['loopsize'], p['n_mount'], p['isDone'], p['o_index'])
     index_list.append((p['p_index'], gui_index))
-    print ttt
+    print(ttt)
     packages.append(ttt)
     gui_index += 1
 
@@ -122,7 +122,7 @@ class Repository(wx.Frame):
         ichar = "%s" % p_index
 
         if isInitial == True:
-            self.start_index = sys.maxint
+            self.start_index = sys.maxsize
             #print "START_INDEX=",self.start_index
         else:
             self.list.DeleteItem(index)
@@ -369,14 +369,14 @@ class Repository(wx.Frame):
             score_max, maxhits, dist_ds, cry_min_size_um, cry_max_size_um, loopsize, n_mount, isDone, o_index = i
             self.setValues(line_index, i, isInitial=False)
             line_index += 1
-        print "updated."
+        print("updated.")
 
     def readCurrentSkipList(self):
         num = self.list.GetItemCount()
         for n_column in range(num):
             # isSkip
-            print "Reading"
-            print self.list.GetItemText(n_column, 1)
+            print("Reading")
+            print(self.list.GetItemText(n_column, 1))
 
     def OnSelectAll(self, event):
         num = self.list.GetItemCount()
@@ -402,7 +402,7 @@ class Repository(wx.Frame):
                 self.list.SetStringItem(line_index, 2, ichar)
                 # original index
                 o_index = int(self.list.GetItemText(line_index, 1))
-                print "O_INDEX= %5d is skipped" % o_index
+                print("O_INDEX= %5d is skipped" % o_index)
                 esa.updateValueAt(o_index, "isSkip", isSkip)
                 self.list.SetItemBackgroundColour(line_index, 'Grey')
 
@@ -422,7 +422,7 @@ class Repository(wx.Frame):
         # Scheme
         mode = self.list.GetItemText(line_index, 6)
         # score_min
-        print "7=", self.list.GetItemText(line_index, 7)
+        print("7=", self.list.GetItemText(line_index, 7))
         score_min = int(self.list.GetItemText(line_index, 7))
         # score_max
         score_max = int(self.list.GetItemText(line_index, 8))
@@ -453,8 +453,8 @@ class Repository(wx.Frame):
         for i in range(0, n_data):
             p_index, o_index, isSkip, isDS, puckID, pinID, mode, score_min, score_max, max_hits, dist_ds, cry_min_size, cry_max_size, loop_size, isDone = self.readValues(
                 i)
-            print "mode=",mode
-            print "score_min=",score_min
+            print("mode=", mode)
+            print("score_min=", score_min)
             esa.updateValueAt(o_index, "isSkip", isSkip)
             esa.updateValueAt(o_index, "p_index", p_index)
             #esa.updateValueAt(o_index, "mode", mode)
@@ -522,7 +522,7 @@ class Repository(wx.Frame):
         exp_finish_time = nowtime + datetime.timedelta(hours=residual_time)
         logline += "Expected finishing time: %s\n" % (exp_finish_time)
 
-        print logline
+        print(logline)
 
         if n_remain <= 1:
             logline += "Finished\n"
@@ -541,7 +541,7 @@ class Repository(wx.Frame):
                 self.list.SetItemBackgroundColour(line_index, 'CYAN')
 
     def PushStartMod(self, event):
-        print "UNKO SHIYOU"
+        print("UNKO SHIYOU")
 
 #app = wx.App()
 eTitle = "ENSOKU %s" % dbfile

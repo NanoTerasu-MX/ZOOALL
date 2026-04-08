@@ -645,6 +645,9 @@ class INOCC:
 
             try:
                 phi_face = self.fitAndFace(phi_area_list)
+                if phi_face % 90.0 == 0.0:
+                    self.logger.info(">>>> Face angle is multiple of 90deg. Add 2.5 deg to avoid it. <<<<")
+                    phi_face = phi_face + 2.5  # avoid multiple of 90deg
                 self.logger.info(f"face_angle = {phi_face}deg")
 
                 # adds offset angles for plate-like crystals
@@ -711,17 +714,16 @@ if __name__ == "__main__":
     os.chmod(logname, 0o666)
 
     test_dir = os.environ['PWD']
-
     inocc = INOCC(blf, test_dir)
-    phi_face = 90
 
     start_time = datetime.datetime.now()
 
     # back image path read from 'beamline.ini'
-    #backimg = config.get('files', 'backimg')
-    backimg = "/user/admin45/JunkZOO2/Libs/back.ppm"
-    backimg = "/user/admin41/JUNKZOO/Libs/back.ppm"
-    backimg = "/user/admin45/JunkZOO/BackImages/back.ppm"
+    ## backimg = config.get('files', 'backimg')
+    # backimg = "/user/admin45/JunkZOO2/Libs/back.ppm"
+    # backimg = "/user/admin41/JUNKZOO/Libs/back.ppm"
+    # backimg = "/user/admin45/JunkZOO/BackImages/back.ppm"
+    backimg="/system/BLSoft/ZOOALL/BackImages/back-2510291459.ppm"
     inocc.setBack(backimg)
     # inocc.setBack("/staff/bl41xu/BLsoft/ZOOALL/BackImages/back-2406271411.ppm")
     # For each sample raster.png

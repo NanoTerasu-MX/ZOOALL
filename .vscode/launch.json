@@ -1,0 +1,50 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            "name": "Python Debugger: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "env": {
+                 "PYTHONPATH": "/system/BLSoft/ZOOALL:/system/BLSoft/ZOOALL/Libs",
+                "ZOOCONFIGPATH": "/system/BLSoft/ZOOALL/Libs"
+            },
+            "args": []
+        },
+        {
+            "name": "Lets_goto_zoo",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/lets_goto_zoo.py",
+            "console": "integratedTerminal",
+            "env": {
+                 "PYTHONPATH": "/system/BLSoft/ZOOALL:/system/BLSoft/ZOOALL/Libs",
+                "ZOOCONFIGPATH": "/system/BLSoft/ZOOALL/Libs"
+            },
+            // "args": [
+            //     "/data/mxstaff/Data/260127_BL09U/261a06/zoo_260126215832.db"
+            // ]
+            "args": [
+                "/data/mxstaff/Data/260127_BL09U/261a04/ZOOPREP_260127_261a04_BL09U.csv"
+            ]
+        },
+        {
+            "name": "UserESA",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/Libs/UserESA.py",
+            "console": "integratedTerminal",
+            "env": {
+                 "PYTHONPATH": "/system/BLSoft/ZOOALL:/system/BLSoft/ZOOALL/Libs",
+                "ZOOCONFIGPATH": "/system/BLSoft/ZOOALL/Libs"
+            },
+            "args": ["/data/mxstaff/AlignmentData/2025B/251108/zootest/ZOOPREP_251029_Yamada_BL09U.xlsx"]
+        }
+    ]
+}

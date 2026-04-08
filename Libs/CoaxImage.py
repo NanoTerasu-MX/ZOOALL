@@ -200,6 +200,7 @@ class CoaxImage:
         origin_shift = [x / um_per_px * 1.e3 for x in origin_shift]
         w, h = self.width, self.height
         cen_x, cen_y = w / 2 + origin_shift[0], h / 2 - origin_shift[1]
+        cen_x, cen_y = 304 + origin_shift[0], 241 - origin_shift[1]
         print("cen_x = %8.2f" % cen_x)
         print("cen_y = %8.2f" % cen_y)
         return int(cen_x), int(cen_y)
@@ -216,6 +217,7 @@ class CoaxImage:
         origin_shift = [x / um_per_px * 1.e3 for x in origin_shift]
         w, h = self.width, self.height
         cen_x, cen_y = w / 2 + origin_shift[0], h / 2 - origin_shift[1]
+        cen_x, cen_y = 304 + origin_shift[0], 241 - origin_shift[1]
         self.logger.debug("cen_x, cen_y = (%8.2f, %8.2f)" % (cen_x, cen_y))
 
         dx, dy = -(sx - cen_x), (sy - cen_y)

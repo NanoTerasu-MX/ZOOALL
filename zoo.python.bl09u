@@ -1,0 +1,12 @@
+#!/bin/bash
+# BL09U at NanoTerasu
+source /system/BLSoft/dials/dials-v3-25-0/dials_env.sh
+
+export PYTHONPATH="/system/BLSoft/ZOOALL/:/system/BLSoft/ZOOALL/Libs/"
+export ZOOCONFIGPATH="/system/BLSoft/ZOOALL/Libs"
+export PHENIX_TRUST_OTHER_ENV="TRUE"
+
+args=("$*")
+echo $args
+
+yamtbx.python $args

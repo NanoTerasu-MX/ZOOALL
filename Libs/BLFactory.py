@@ -26,10 +26,10 @@ class BLFactory:
         self.bss_config = BSSconfig.BSSconfig()
 
     def initDevice(self):
-        # Message server に接続
+        # Message server に接続、Device制御用
         self.ms = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.ms.connect((self.blanc_address, 10101))
-        # Zoo をインスタンス化して利用する
+        # Zoo をインスタンス化して利用する、BSSにはZoo経由でアクセスする
         self.zoo = Zoo.Zoo()
         self.zoo.connect()
         # Device をインスタンス化

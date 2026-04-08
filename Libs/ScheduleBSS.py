@@ -284,7 +284,7 @@ class ScheduleBSS:
         ofile.write("Anomalous Nuclei: Mn  # Mn-K\n")
         ofile.write("XAFS Mode: 0  # 0:Final  1:Fine  2:Coarse  3:Manual\n")
 
-        if self.beamline.upper() == "BL45XU":
+        if self.beamline.upper() in ("BL45XU", "BL09U"):
             ofile.write("Attenuator: %5d\n" % self.att_index)
         elif self.beamline.upper() == "BL41XU" or self.beamline.upper() == "BL32XU":
             ofile.write("Attenuator transmission: %9.6f\n" % self.transmission)

@@ -26,10 +26,11 @@ import BLFactory
 import logging.config
 
 if __name__ == "__main__":
-    ms = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    print("connecting %s" % blanc_address)
-    ms.connect((blanc_address, 10101))
-    print("Success")
+    # msはBLFactoryの中で定義されるので、ここでは定義しない (2025/10/05 Yamada)
+    # ms = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # print("connecting %s" % blanc_address)
+    # ms.connect((blanc_address, 10101))
+    # print("Success")
 
     # Logging setting
     d = MyDate.MyDate()
@@ -103,4 +104,4 @@ if __name__ == "__main__":
         # zoo.cleaning()
 
     blf.zoo.disconnect()
-    ms.close()
+    blf.ms.close()

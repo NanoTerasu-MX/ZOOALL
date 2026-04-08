@@ -1,15 +1,16 @@
 #!/usr/bin/python
 import wx
 import sys, numpy, threading
-from wx.lib.mixins.listctrl import CheckListCtrlMixin, ListCtrlAutoWidthMixin
+#from wx.lib.mixins.listctrl import CheckListCtrlMixin, ListCtrlAutoWidthMixin
 import wx.lib.mixins.listctrl as listmix
 #import logger, logger.config
 import logging
+import datetime
 
 # Version 3.22 2019/10/25 : 
-beamline = "BL32XU"
+beamline = "BL09U"
 
-sys.path.append("/isilon/%s/BLsoft/PPPP/10.Zoo/Libs" % beamline.upper())
+sys.path.append("/system/BLSoft/ZOOALL/Libs")
 
 import ESA
 import DBinfo
@@ -55,7 +56,7 @@ for p in ppp:
            p['score_min'], p['score_max'], p['maxhits'], p['dist_ds'],
            p['cry_min_size_um'], p['cry_max_size_um'], p['loopsize'], p['n_mount'], p['isDone'], p['o_index'])
     index_list.append((p['p_index'], gui_index))
-    print ttt
+    print(ttt)
     packages.append(ttt)
     gui_index += 1
 
@@ -100,7 +101,8 @@ class WxTextCtrlHandler(logging.Handler):
         s = self.format(record) + "\n"
         wx.CallAfter(self.ctrl.WriteText, s)
 
-class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin, listmix.CheckListCtrlMixin):
+#class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin, listmix.CheckListCtrlMixin):
+class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin):
     ''' TextEditMixin allows any column to be edited. '''
 
     # ----------------------------------------------------------------------
@@ -109,7 +111,8 @@ class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin, listmix.CheckListCtrl
         """Constructor"""
         wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
         listmix.TextEditMixin.__init__(self)
-        listmix.CheckListCtrlMixin.__init__(self)
+#        listmix.CheckListCtrlMixin.__init__(self)
+        self.EnableCheckBoxes(enable=True)
 
 
 class Repository(wx.Frame):
@@ -122,22 +125,22 @@ class Repository(wx.Frame):
         ichar = "%s" % p_index
 
         if isInitial == True:
-            self.start_index = sys.maxint
+            self.start_index = sys.maxsize
             #print "START_INDEX=",self.start_index
         else:
             self.list.DeleteItem(index)
 
         #print "INDEX=",index
         #index = self.list.InsertStringItem(self.start_index, ichar)
-        index = self.list.InsertStringItem(index, ichar)
+        index = self.list.InsertItem(index, ichar)
 
         # o_index
         ichar = "%s" % o_index
-        self.list.SetStringItem(index, 1, ichar)
+        self.list.SetItem(index, 1, ichar)
 
         # isSkip
         ichar = "%s" % isSkip
-        self.list.SetStringItem(index, 2, ichar)
+        self.list.SetItem(index, 2, ichar)
 
         if isSkip == 1 and isDS == 0:
             self.list.SetItemBackgroundColour(index, 'Grey')
@@ -151,41 +154,41 @@ class Repository(wx.Frame):
             self.list.SetItemBackgroundColour(index, 'Cyan')
 
         ichar = "%s" % isDS
-        self.list.SetStringItem(index, 3, ichar)
+        self.list.SetItem(index, 3, ichar)
         # puckID
-        self.list.SetStringItem(index, 4, puckid)
+        self.list.SetItem(index, 4, puckid)
         # pinID
         ichar = "%s" % pinid
-        self.list.SetStringItem(index, 5, ichar)
+        self.list.SetItem(index, 5, ichar)
         # Scheme
-        self.list.SetStringItem(index, 6, mode)
+        self.list.SetItem(index, 6, mode)
         # score_min
         ichar = "%s" % int(score_min)
-        self.list.SetStringItem(index, 7, ichar)
+        self.list.SetItem(index, 7, ichar)
         # score_max
         ichar = "%s" % int(score_max)
-        self.list.SetStringItem(index, 8, ichar)
+        self.list.SetItem(index, 8, ichar)
         # max hit
         ichar = "%s" % maxhits
-        self.list.SetStringItem(index, 9, ichar)
+        self.list.SetItem(index, 9, ichar)
         # dist for data collection
         ichar = "%s" % dist_ds
-        self.list.SetStringItem(index, 10, ichar)
+        self.list.SetItem(index, 10, ichar)
         # min cry size
         ichar = "%s" % cry_min_size_um
-        self.list.SetStringItem(index, 11, ichar)
+        self.list.SetItem(index, 11, ichar)
         # max cry size
         ichar = "%s" % cry_max_size_um
-        self.list.SetStringItem(index, 12, ichar)
+        self.list.SetItem(index, 12, ichar)
         # Loop size
         loop_char = "%5.1f" % loopsize
-        self.list.SetStringItem(index, 13, loop_char)
+        self.list.SetItem(index, 13, loop_char)
         # nMount
         ichar = "%s" % n_mount
-        self.list.SetStringItem(index, 14, ichar)
+        self.list.SetItem(index, 14, ichar)
         # isDone
         ichar = "%s" % isDone
-        self.list.SetStringItem(index, 15, ichar)
+        self.list.SetItem(index, 15, ichar)
 
     def __init__(self, parent, id, title):
         wx.Frame.__init__(self, parent, id, title, size=(1200, 600))
@@ -305,7 +308,7 @@ class Repository(wx.Frame):
             logger_out = "Get value of %s\n" % param_name
             num = self.list.GetItemCount()
             for line_index in range(num):
-                if self.list.IsChecked(line_index):
+                if self.list.IsItemChecked(line_index):
                     o_index = int(self.list.GetItemText(line_index, 1))
                     esa.cur.execute("SELECT %s FROM ESA WHERE o_index = %s;" % (param_name, o_index))
                     logger_out += "%s of o_index = %3d : %s\n" % (param_name, o_index, str(esa.cur.fetchone()[0]))
@@ -338,7 +341,7 @@ class Repository(wx.Frame):
         num = self.list.GetItemCount()
         for line_index in range(num):
             n_checked = 0
-            if self.list.IsChecked(line_index):
+            if self.list.IsItemChecked(line_index):
                 o_index = int(self.list.GetItemText(line_index, 1))
                 logger.info("Modifying O_INDEX= %5d Param=%s Value is changed to [%s] (new value)" % (o_index, param_name, param_value))
                 logger.info(esa.updateValueAt(o_index, param_name, param_value))
@@ -371,14 +374,14 @@ class Repository(wx.Frame):
             score_max, maxhits, dist_ds, cry_min_size_um, cry_max_size_um, loopsize, n_mount, isDone, o_index = i
             self.setValues(line_index, i, isInitial=False)
             line_index += 1
-        print "updated."
+        print("updated.")
 
     def readCurrentSkipList(self):
         num = self.list.GetItemCount()
         for n_column in range(num):
             # isSkip
-            print "Reading"
-            print self.list.GetItemText(n_column, 1)
+            print("Reading")
+            print(self.list.GetItemText(n_column, 1))
 
     def OnSelectAll(self, event):
         num = self.list.GetItemCount()
@@ -394,17 +397,17 @@ class Repository(wx.Frame):
         num = self.list.GetItemCount()
         for line_index in range(num):
             #print "PushSkip:"
-            if self.list.IsChecked(line_index):
+            if self.list.IsItemChecked(line_index):
                 # p_index=self.list.GetItemText(i,0)
                 isSkip = 1
                 # puck_id=self.list.GetItemText(i,3)
                 # pin_id=self.list.GetItemText(i,4)
                 # isSkip
                 ichar = "%s" % isSkip
-                self.list.SetStringItem(line_index, 2, ichar)
+                self.list.SetItem(line_index, 2, ichar)
                 # original index
                 o_index = int(self.list.GetItemText(line_index, 1))
-                print "O_INDEX= %5d is skipped" % o_index
+                print("O_INDEX= %5d is skipped" % o_index)
                 esa.updateValueAt(o_index, "isSkip", isSkip)
                 self.list.SetItemBackgroundColour(line_index, 'Grey')
 
@@ -424,7 +427,7 @@ class Repository(wx.Frame):
         # Scheme
         mode = self.list.GetItemText(line_index, 6)
         # score_min
-        print "7=", self.list.GetItemText(line_index, 7)
+        print("7=", self.list.GetItemText(line_index, 7))
         score_min = int(self.list.GetItemText(line_index, 7))
         # score_max
         score_max = int(self.list.GetItemText(line_index, 8))
@@ -455,8 +458,8 @@ class Repository(wx.Frame):
         for i in range(0, n_data):
             p_index, o_index, isSkip, isDS, puckID, pinID, mode, score_min, score_max, max_hits, dist_ds, cry_min_size, cry_max_size, loop_size, isDone = self.readValues(
                 i)
-            print "mode=",mode
-            print "score_min=",score_min
+            print("mode=", mode)
+            print("score_min=", score_min)
             esa.updateValueAt(o_index, "isSkip", isSkip)
             esa.updateValueAt(o_index, "p_index", p_index)
             #esa.updateValueAt(o_index, "mode", mode)
@@ -524,7 +527,7 @@ class Repository(wx.Frame):
         exp_finish_time = nowtime + datetime.timedelta(hours=residual_time)
         logline += "Expected finishing time: %s\n" % (exp_finish_time)
 
-        print logline
+        print(logline)
 
         if n_remain <= 1:
             logline += "Finished\n"
@@ -534,16 +537,16 @@ class Repository(wx.Frame):
         for line_index in range(num):
             if line_index == 0:
                 self.log_window.Clear()
-            if self.list.IsChecked(line_index):
+            if self.list.IsItemChecked(line_index):
                 isSkip = 0
                 ichar = "%s" % isSkip
-                self.list.SetStringItem(line_index, 2, ichar)
+                self.list.SetItem(line_index, 2, ichar)
                 o_index = int(self.list.GetItemText(line_index, 1))
                 esa.updateValueAt(o_index, "isSkip", isSkip)
                 self.list.SetItemBackgroundColour(line_index, 'CYAN')
 
     def PushStartMod(self, event):
-        print "UNKO SHIYOU"
+        print("UNKO SHIYOU")
 
 #app = wx.App()
 eTitle = "ENSOKU %s" % dbfile

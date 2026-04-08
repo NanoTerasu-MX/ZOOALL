@@ -6,7 +6,7 @@ import sys
 import traceback
 import numpy
 
-beamline = "BL32XU"
+beamline = "BL09U"
 
 if beamline.upper() == "BL45XU":
     y_left_sign = -1.0
@@ -23,9 +23,14 @@ elif beamline.upper() == "BL41XU":
     host = '172.24.242.54'
     detectordim = 311.2  # [mm in shorter dimension]
     det_area = 311.2 * 327.8
+elif beamline.upper() == "BL09U":
+    y_left_sign = -1.0
+    host = '192.168.0.1'
+    detectordim = 423.6  # [mm in shorter dimension]
+    det_area = 423.6 * 434.6
 
-sys.path.append("/isilon/%s/BLsoft/PPPP/10.Zoo/" % beamline.upper())
-sys.path.append("/isilon/%s/BLsoft/PPPP/10.Zoo/Libs/" % beamline.upper())
+# sys.path.append("/isilon/%s/BLsoft/PPPP/10.Zoo/" % beamline.upper())
+# sys.path.append("/isilon/%s/BLsoft/PPPP/10.Zoo/Libs/" % beamline.upper())
 
 import datetime
 import AttFactor
@@ -165,7 +170,7 @@ class MyFrame2(wx.Frame):
         self.checkbox_2_copy = wx.CheckBox(self.notebook_1_pane_1, wx.ID_ANY, "with Back Light[Evac]")
         self.evacManual = wx.Button(self.notebook_1_pane_1, wx.ID_ANY, "Evacuate [manual mount]")
         self.bitmap_1 = wx.StaticBitmap(self.notebook_1_pane_1, wx.ID_ANY,
-                                        wx.Bitmap("/user/target/ZOO32XU/KUMAGUI/a.png",
+                                        wx.Bitmap("/system/BLSoft/ZOOALL/KUMAGUI/a.png",
                                                   wx.BITMAP_TYPE_ANY))
         self.notebook_1_pane_4 = wx.Panel(self.notebook_1, wx.ID_ANY)
         self.label_1_copy_1 = wx.StaticText(self.notebook_1_pane_4, wx.ID_ANY, "Data directory", style=wx.ALIGN_CENTER)
@@ -178,10 +183,10 @@ class MyFrame2(wx.Frame):
         self.serialBox = wx.TextCtrl(self.notebook_1_pane_4, wx.ID_ANY, "0")
         self.label_1_copy_copy_copy = wx.StaticText(self.notebook_1_pane_4, wx.ID_ANY, "Beam size",
                                                     style=wx.ALIGN_CENTER)
-        config_dir = "/isilon/blconfig/%s/" % beamline.lower()
-        print "CONFIG_DIR = %s" % config_dir
-        bsconf = BeamsizeConfig(config_dir)
-        blist = bsconf.getBeamsizeListForKUMA()
+        self.config_dir = "/system/BLSoft/blconfig/"
+        print "CONFIG_DIR = %s" % self.config_dir
+        self.bsconf = BeamsizeConfig(self.config_dir)
+        blist = self.bsconf.getBeamsizeListForKUMA()
         print "=========================",blist
         self.beamsizePullDown = wx.Choice(self.notebook_1_pane_4, wx.ID_ANY, choices=blist)
         self.static_line_2 = wx.StaticLine(self.notebook_1_pane_4, wx.ID_ANY)
@@ -327,9 +332,9 @@ class MyFrame2(wx.Frame):
         self.prefix_box_multi = wx.TextCtrl(self.notebook_1_pane_5, wx.ID_ANY, "multi")
         self.label_1_copy_copy_copy_copy = wx.StaticText(self.notebook_1_pane_5, wx.ID_ANY, "Beam size",
                                                          style=wx.ALIGN_CENTER)
-        config_dir = "/isilon/blconfig/%s/" % beamline.lower()
-        bsconf = BeamsizeConfig(config_dir)
-        blist = bsconf.getBeamsizeListForKUMA()
+        # config_dir = "/isilon/blconfig/%s/" % beamline.lower()
+        # bsconf = BeamsizeConfig(config_dir)
+        # blist = bsconf.getBeamsizeListForKUMA()
         self.beamsizePullDown2 = wx.Choice(self.notebook_1_pane_5, wx.ID_ANY, choices=blist)
         self.button_11_copy = wx.Button(self.notebook_1_pane_5, wx.ID_ANY, "Check")
         self.button_11 = wx.Button(self.notebook_1_pane_5, wx.ID_ANY, "Generate")
@@ -468,9 +473,9 @@ class MyFrame2(wx.Frame):
         self.photon_density_limit = 3.0E10
 
         # Parameters
-        self.confdir = "/isilon/blconfig/%s/" % beamline.lower()
+        # self.confdir = "/isilon/blconfig/%s/" % beamline.lower()
 
-        self.bsconf = BeamsizeConfig(self.confdir)
+        # self.bsconf = BeamsizeConfig(self.confdir)
         self.flux_list = self.bsconf.getFluxListForKUMA()
         print self.flux_list
 
@@ -508,7 +513,7 @@ class MyFrame2(wx.Frame):
         self.attfac = AttFactor.AttFactor()
 
         # LOG FILE
-        logname = "/user/target/ZOO32XU/KUMAGUI/Logs/kuma_%s.log" % datetime.datetime.now().strftime('%Y%m%d%H%M')
+        logname = "/system/BLSoft/ZOOALL/ZooLogs/kuma_%s.log" % datetime.datetime.now().strftime('%Y%m%d%H%M')
         self.logfile = open(logname, "w")
 
         # SHIKA

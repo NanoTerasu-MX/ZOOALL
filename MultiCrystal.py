@@ -43,15 +43,16 @@ class MultiCrystal:
         self.isSlow = False
         self.isReadBeamSize = False
         self.isShutterless = False
+        self.trans = None
         # Read 'beamline' name from beamline.ini  
         config = ConfigParser(interpolation=ExtendedInterpolation())
         config_path = "%s/beamline.ini" % os.environ['ZOOCONFIGPATH']
         config.read(config_path)
         self.beamline = config.get("beamline", "beamline")
 
-        if self.beamline == "BL32XU" or "BL41XU" or "BL44XU":
+        if self.beamline == "BL32XU" or "BL41XU" or "BL44XU" or "BL45XU":
             self.data_suffix = "h5"
-        if self.beamline == "BL45XU":
+        if self.beamline == "BL09U":
             self.data_suffix = "cbf"
 
         # Is this valid only for BL32XU? K.Hirata 190412

@@ -64,7 +64,10 @@ class RasterSchedule:
         # BL45XU 1: 2M mode
         self.roi_index = 1
 
-        # All ID beamlines now use h5 format.
+        # for PILATUS BL09U at NanoTerasu
+        if self.beamline == "BL09U":
+            self.img_suffix = "cbf"
+        # All ID beamlines at SPring-8 now use h5 format.
         if self.beamline == "BL41XU" or self.beamline == "BL32XU" or self.beamline == "BL44XU" or self.beamline == "BL45XU":
             self.img_suffix = "h5"
 

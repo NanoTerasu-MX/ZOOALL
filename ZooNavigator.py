@@ -67,8 +67,10 @@ class ZooNavigator():
 
         # BSS configure file path
         # beamline.ini から読み込む 
-        self.config = ConfigParser(interpolation=ExtendedInterpolation())
-        self.config.read("%s/beamline.ini" % os.environ['ZOOCONFIGPATH'])
+        # self.config = ConfigParser(interpolation=ExtendedInterpolation())
+        # self.config.read("%s/beamline.ini" % os.environ['ZOOCONFIGPATH'])
+        # すでにBLFactoryで読み込んでいるので、そこから取得する
+        self.config = self.blf.config
         self.config_file = self.config.get("files", "bssconfig_file")
         # directory to store background images.
         self.backimage_dir = self.config.get("dirs", "backimage_dir")
@@ -101,9 +103,9 @@ class ZooNavigator():
 
         # Goniometer positions 
         # The values will be updated by the current pin position
-        self.sx = 1.0
-        self.sy = -7.74
-        self.sz = -1.00
+        self.sx = -0.130
+        self.sy = 5.000
+        self.sz = 0.600
 
         # Goniometer mount position( will be read from BSS configure file)
         self.mx = 1.0
@@ -127,7 +129,7 @@ class ZooNavigator():
         self.meas_flux_list = []
         self.meas_wavelength_list = []
 
-        self.needMeasureFlux = True  # test at 2019/06/18 at BL45XU
+        self.needMeasureFlux = False  # test at 2019/06/18 at BL45XU
 
         # If BSS can change beamsize via command
         self.doesBSSchangeBeamsize = True
@@ -153,6 +155,9 @@ class ZooNavigator():
         # isDark flag : read from 'beamline.ini'
         # section: special_setting, option: isDark, value: boolean
         self.isDark = self.config.getboolean("special_setting", "isDark")
+
+        # Wait time after energy change
+        self.wait_after_energy_change = self.config.getint("special_setting", "minutes_after_change")
 
     def readZooDB(self, dbfile):
         self.esa = ESA.ESA(dbfile)
@@ -186,6 +191,7 @@ class ZooNavigator():
         dbfile = "%s/zoo_%s.db" % (root_dir, time_str)
         self.esa = ESA.ESA(dbfile)
         self.esa.makeTable(self.esa_csv, force_to_make=self.is_renew_db)
+        self.logger.info("Preparation of ZOO database is completed. %s" % dbfile)
         return True
 
     def recoverOptionOn(self):
@@ -227,13 +233,18 @@ class ZooNavigator():
 
         # Beam size change
         if self.doesBSSchangeBeamsize == True:
-            current_beam_index = self.zoo.getBeamsize()
             beamsizeconf = BeamsizeConfig.BeamsizeConfig()
+            if self.config.get("special_setting", "beamsize_source") == "direct":
+                current_beam_index = self.getBeamIndexFromMS(beamsizeconf)
+            else:
+                current_beam_index = self.zoo.getBeamsize()
             self.beamsize_index = beamsizeconf.getBeamIndexHV(cond['ds_hbeam'], cond['ds_vbeam'])
             if current_beam_index != self.beamsize_index:
                 self.logger.info("Beam size will be changed from now.")
                 self.logger.info("Beamsize index = %5d" % self.beamsize_index)
                 self.zoo.setBeamsize(self.beamsize_index)
+                if self.config.get("special_setting", "beamsize_source") == "direct":
+                    self.changeBeamsizeWithMS(beamsizeconf, self.beamsize_index)
 
         # Measure the flux
         self.logger.info("Measuring photon flux....")
@@ -264,12 +275,14 @@ class ZooNavigator():
 
     def getBackgroundImage(self):
         self.logger.debug("getBackGroundImage starts..")
+        
         # Check if the pin is mounted or not
         try:
             self.zoo.dismountCurrentPin()
         except MyException as tttt:
             self.logger.info("dismounting sample for capturing background image failed.")
             sys.exit()
+
         # Background image for centering
         self.backimg = "%s/%s" % (self.backimage_dir, datetime.datetime.now().strftime("back-%y%m%d%H%M.ppm"))
         self.logger.debug("Before while loop for capturing.")
@@ -552,7 +565,7 @@ class ZooNavigator():
 
         # Root directory : exisiting or not
         if os.path.exists(root_dir):
-            self.logger.info("%s already exists" % root_dir)
+            self.logger.info("The root directory %s already exists" % root_dir)
         else:
             self.logger.info("%s is being made now..." % root_dir)
             os.makedirs(root_dir)
@@ -584,7 +597,7 @@ class ZooNavigator():
             os.makedirs(root_dir)
 
         # Getting puck information from SPACE server program
-        self.zoo.getSampleInformation()
+        self.zoo.getSampleInformation()        
 
         # Background image should be done for each 'run'
         if self.isCaptured == False:
@@ -595,14 +608,15 @@ class ZooNavigator():
         # Everytime, energy_change_flag is updated.
         if checkEnergyFlag == True:
             self.logger.info("Wavelength will be checked.")
+            # check wheter wavelength is changed or not, and change it if necessary
             energy_change_flag = self.checkEnergy(cond)
             # When the energy was changed in checkEnergy function
             if energy_change_flag == True:
                 if self.beamline.upper() == "BL45XU":
                     self.logger.info("Wavelength will be changed.")
                     self.zoo.setWavelength(cond['wavelength'])
-                    self.logger.info("Wavelength has been changed. You should wait for 15 minutes")
-                    time.sleep(15 * 60)
+                    self.logger.info(f"Wavelength has been changed. You should wait for {self.wait_after_energy_change} minutes")
+                    time.sleep(self.wait_after_energy_change * 60)
                     self.logger.info("Tuning is required.")
                     # 2020/04/06 Dtheta1 tune will be conducted
                     self.logger.info("BOSS command : BLdtheta_tune will be run.")
@@ -611,16 +625,19 @@ class ZooNavigator():
                     self.zoo.runScriptOnBSS("BLTune")
                     self.dev.zoom.zoomOut()
                 else:
-                    self.logger.info("X-ray energy was changed. Waiting for 15 mins")
-                    time.sleep(15 * 60)
+                    self.logger.info(f"X-ray energy was changed. Waiting for {self.wait_after_energy_change} mins")
+                    time.sleep(self.wait_after_energy_change * 60)
             else:
                 self.logger.info("Wavelength is not changed in this condition. Tuning is not required")
 
         # Beamsize setting
         if self.doesBSSchangeBeamsize == True:
             # Beamsize setting
-            current_beam_index = self.zoo.getBeamsize()
             beamsizeconf = BeamsizeConfig.BeamsizeConfig()
+            if self.config.get("special_setting", "beamsize_source") == "direct":
+                current_beam_index = self.getBeamIndexFromMS(beamsizeconf)
+            else:
+                current_beam_index = self.zoo.getBeamsize()
             self.logger.debug(
                 "Raster beam size = %5.2f(H) x %5.2f(V) [um]" % (cond['raster_hbeam'], cond['raster_vbeam']))
             self.beamsize_index = beamsizeconf.getBeamIndexHV(cond['raster_hbeam'], cond['raster_vbeam'])
@@ -651,7 +668,7 @@ class ZooNavigator():
             # Recording flux value to ZOODB
             self.updateDBinfo(cond, "flux", self.phosec_meas)
         elif self.helical_debug == True:
-            self.phosec_meas = 1E13  # 2019/05/24 K.Hirata
+            self.phosec_meas = 1E12  # 2019/05/24 K.Hirata, 2024/11/21 Y.Yamada
 
         # 2019/04/21 Measuring flux should be skipped now
         # Beamsize should be changed via BSS
@@ -782,6 +799,18 @@ class ZooNavigator():
                 self.logger.info("SPACE output a warning message. Next sample")
                 self.logger.info("Breaking the loop of %s-%02d" % (trayid, pinid))
                 return
+            elif exception_message.rfind('-1005100151') != -1:
+                message = "SPACE accident occurred! Please contact a beamline scientist.\n"
+                message += "L-head value is too large in picking up the designated pin from gonio."
+                self.logger.error(message)
+                log_message = message
+                error_code = ErrorCode.SPACE_WARNING_LHEAD_PUSHED
+                # update
+                # isDoneもZOODB用に入れておくことに
+                self.updateDBinfo(cond, "isDone", error_code)
+                self.updateDBinfo(cond, "log_mount", log_message)
+                self.updateTime(cond, "meas_end", comment="skipped with SPACE warning")
+                sys.exit()
             else:
                 message = "Unknown Exception: %s. Program terminates" % ttt
                 self.logger.error(message)
@@ -909,11 +938,12 @@ class ZooNavigator():
         capture_name = "before.ppm"
         self.lm.captureImage(capture_name)
 
-        if self.beamline.upper() == "BL45XU":
+        if self.beamline.upper() in ("BL45XU", "BL09U"):
+            pulse_loop_zoom = self.config.get("capture","pulse_loop_zoom", fallback=3200)
             # LN2:ON -> ZoomCap:ON
             if cond['ln2_flag'] == 1:
                 # self.dev.zoom.move(2000)
-                self.dev.zoom.move(3200) # by N.Mizuno @2021/03/30
+                self.dev.zoom.move(pulse_loop_zoom) 
                 capture_name = "loop_zoom.ppm"
                 self.lm.captureImage(capture_name)
                 # Bukkake
@@ -927,9 +957,11 @@ class ZooNavigator():
             elif cond['zoomcap_flag'] == 1:
                 self.logger.info("Zoom capture will be conducted from now...")
                 # self.dev.zoom.move(2000)
-                self.dev.zoom.move(3200) # by N.Mizuno @2021/03/30
+                self.dev.zoom.move(pulse_loop_zoom)
                 capture_name = "loop_zoom.ppm"
                 self.lm.captureImage(capture_name)
+                with open(os.path.join(self.lm.root_dir, self.lm.prefix, "log_zoom.txt"), "w") as f:
+                    f.write(f"{self.sx} {self.sy} {self.sz} {sphi}\n")
                 self.dev.zoom.zoomOut()
             else:
                 self.logger.info("Zoom capture will be skipped...")
@@ -982,6 +1014,37 @@ class ZooNavigator():
 
         # 正常終了したときの処理 (isDone, meas_endは各関数内で管理する)
         self.logger.info("End of data collection from this 'cond'")
+
+    def getBeamIndexFromMS(self, beamsizeconf):
+        tw, th, bs, ff = beamsizeconf.getBeamParamList()
+
+        # Get current beamsize from ms
+        bs_v, bs_h = self.dev.tcs.getApert()
+        self.logger.info("Current beamsize from MS: %5.2f x %5.2f [um]" % (bs_h, bs_v))
+
+        for i in range(len(bs)):
+            if bs_h == tw[i] and bs_v == th[i]:
+                self.logger.info("Current beamsize index from MS: %5d" % (i + 1))
+                return i + 1
+        return -9999
+
+    def changeBeamsizeWithMS(self, beamsizeconf, beamsize_index):
+        tw, th, bs, ff = beamsizeconf.getBeamParamList()
+
+        # Get current beamsize from ms
+        bs_v, bs_h = self.dev.tcs.getApert()
+        self.logger.info("Current beamsize from MS: %5.2f x %5.2f [um]" % (bs_h, bs_v))
+
+        target_bs_h = tw[beamsize_index - 1]
+        target_bs_v = th[beamsize_index - 1]
+        if bs_h == target_bs_h and bs_v == target_bs_v:
+            self.logger.info("Beamsize is already the target size: index %5d" % beamsize_index)
+            return
+
+        self.logger.info("Changing beamsize to index %5d: %5.2f x %5.2f [um]" % (
+            beamsize_index, target_bs_h, target_bs_v))
+        self.dev.tcs.setApert(target_bs_v, target_bs_h)
+        time.sleep(2.0)  # wait for settling
 
     def finishZoo(self):
         open(os.path.join(os.environ["HOME"], ".zoo_current"), "w").write("%s %s finished\n" \

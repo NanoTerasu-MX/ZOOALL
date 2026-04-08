@@ -55,7 +55,9 @@ class CCDlen:
         self.ccdlen.move(pls)
 
     def evac(self):
-        self.moveCL(300.0)
+        current_len = self.getLen()
+        if current_len < 250.0:
+            self.moveCL(300.0)
 
     def isMoved(self):
         isY = self.coly.isMoved()
